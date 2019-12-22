@@ -25,36 +25,68 @@ func parseInput(filename string) []int {
 	return intArray
 }
 
-func correctInput(input []int) {
-	input[1] = 12
-	input[2] = 2
+func copyInput(input []int) []int {
+	newInput := make([]int, len(input))
+	copy(newInput, input)
+
+	return newInput
+}
+
+func adjustInput(input []int, noun, verb int) {
+	input[1] = noun
+	input[2] = verb
 }
 
 func runProgram(input []int) {
-	cursor := 0
+	pointer := 0
 
-	for input[cursor] != 99 {
-		posA := input[cursor+1]
-		posB := input[cursor+2]
-		posC := input[cursor+3]
+	for input[pointer] != 99 {
+		valA := input[pointer+1]
+		valB := input[pointer+2]
+		valC := input[pointer+3]
 
-		switch input[cursor] {
+		switch input[pointer] {
 		case 1:
-			input[posC] = input[posA] + input[posB]
+			input[valC] = input[valA] + input[valB]
 		case 2:
-			input[posC] = input[posA] * input[posB]
+			input[valC] = input[valA] * input[valB]
 		}
 
-		cursor += 4
+		pointer += 4
 	}
+}
+
+func findParams(input []int, answer int) (noun, verb int) {
+	for i := 0; i < 99; i++ {
+		for j := 0; j < 99; j++ {
+			newInput := copyInput(input)
+			adjustInput(newInput, i, j)
+			runProgram(newInput)
+
+			if newInput[0] == answer {
+				noun = i
+				verb = j
+				break
+			}
+		}
+	}
+
+	return noun, verb
 }
 
 func main() {
 	input := parseInput("./input.txt")
-	correctInput(input)
 
-	runProgram(input)
+	newInput := copyInput(input)
+	adjustInput(newInput, 12, 2)
+
+	runProgram(newInput)
 
 	// this is the answer to part 1
-	fmt.Println(input[0])
+	fmt.Println(newInput[0])
+
+	noun, verb := findParams(input, 19690720)
+
+	// this is the answer to part 2
+	fmt.Println(100*noun + verb)
 }

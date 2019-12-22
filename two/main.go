@@ -56,14 +56,14 @@ func runProgram(input []int) {
 	}
 }
 
-func findParams(input []int, answer int) (noun, verb int) {
+func findParams(input []int, condition int) (noun, verb int) {
 	for i := 0; i < 99; i++ {
 		for j := 0; j < 99; j++ {
 			newInput := copyInput(input)
 			adjustInput(newInput, i, j)
 			runProgram(newInput)
 
-			if newInput[0] == answer {
+			if newInput[0] == condition {
 				noun = i
 				verb = j
 				break

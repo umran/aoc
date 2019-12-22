@@ -45,18 +45,18 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		s := scanner.Text()
-		totalFuel += calcFuel(floatFromString(s))
-		totalFuel2 += calcFuel2(floatFromString(s))
+		mass := floatFromString(scanner.Text())
+		totalFuel += calcFuel(mass)
+		totalFuel2 += calcFuel2(mass)
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	// this is the value for puzzle 1
+	// this is the answer to part 1
 	fmt.Println(int64(totalFuel))
 
-	// this is the value for puzzle 2
+	// this is the answer to part 2
 	fmt.Println(int64(totalFuel2))
 }

@@ -32,6 +32,33 @@ type Wire struct {
 	segments []*Segment
 }
 
+func (c *Coordinate) move(m *Movement) *Coordinate {
+	return &Coordinate{
+		x: c.x + m.deltaX,
+		y: c.y + m.deltaY,
+	}
+}
+
+func (c *Coordinate) equals(c2 *Coordinate) bool {
+	return c.x == c2.x && c.y == c2.y
+}
+
+func (s *Segment) maxX() int {
+	return int(math.Max(float64(s.start.x), float64(s.end.x)))
+}
+
+func (s *Segment) minX() int {
+	return int(math.Min(float64(s.start.x), float64(s.end.x)))
+}
+
+func (s *Segment) maxY() int {
+	return int(math.Max(float64(s.start.y), float64(s.end.y)))
+}
+
+func (s *Segment) minY() int {
+	return int(math.Min(float64(s.start.y), float64(s.end.y)))
+}
+
 func (s *Segment) alongX() bool {
 	return s.start.x != s.end.x
 }
@@ -45,7 +72,7 @@ func (s *Segment) containsAlongX(s2 *Segment) bool {
 		return false
 	}
 
-	if s.start.x <= s2.start.x && s.end.x >= s2.end.x {
+	if s.minX() <= s2.minX() && s.maxX() > s2.maxX() {
 		return true
 	}
 
@@ -57,25 +84,32 @@ func (s *Segment) containsAlongY(s2 *Segment) bool {
 		return false
 	}
 
-	if s.start.y <= s2.start.y && s.end.y >= s2.end.y {
+	if s.minY() <= s2.minY() && s.maxY() > s2.maxY() {
 		return true
 	}
 
 	return false
 }
 
-func (s *Segment) steps() int {
-	if s.alongX() {
-		return int(math.Abs(float64(s.start.x) - float64(s.end.x)))
+func (s *Segment) containsCoordinate(c *Coordinate) bool {
+	switch {
+	case s.alongX():
+		return s.minX() <= c.x && s.maxX() > c.x && s.start.y == c.y
+	case s.alongY():
+		return s.minY() <= c.y && s.maxY() > c.y && s.start.x == c.x
+	default:
+		return s.start.equals(c)
 	}
-
-	return int(math.Abs(float64(s.start.y) - float64(s.end.y)))
 }
 
-func (c *Coordinate) move(m *Movement) *Coordinate {
-	return &Coordinate{
-		x: c.x + m.deltaX,
-		y: c.y + m.deltaY,
+func (s *Segment) steps() int {
+	switch {
+	case s.alongX():
+		return int(math.Abs(float64(s.start.x) - float64(s.end.x)))
+	case s.alongY():
+		return int(math.Abs(float64(s.start.y) - float64(s.end.y)))
+	default:
+		return 0
 	}
 }
 
@@ -172,6 +206,26 @@ func findIntersections(a, b *Wire) []*Coordinate {
 	return intersections
 }
 
+func stepsToReachIntersection(wire *Wire, intersection *Coordinate) int {
+	totalSteps := 0
+	for _, segment := range wire.segments {
+		totalSteps += segment.steps()
+
+		if segment.containsCoordinate(intersection) {
+			// we may have overstepped so adjust total:
+			switch {
+			case segment.alongX():
+				totalSteps -= int(math.Abs(float64(segment.end.x) - float64(intersection.x)))
+			case segment.alongY():
+				totalSteps -= int(math.Abs(float64(segment.end.y) - float64(intersection.y)))
+			}
+			break
+		}
+	}
+
+	return totalSteps
+}
+
 func main() {
 	wireA := parseInput("./inputA.txt")
 	wireB := parseInput("./inputB.txt")
@@ -196,4 +250,21 @@ func main() {
 
 	// this is the answer to part 1
 	fmt.Printf("closest distance: %d \n", closestDistance)
+
+	allCombinedSteps := make([]int, 0)
+	for _, intersection := range intersections {
+		combinedSteps := stepsToReachIntersection(wireA, intersection) + stepsToReachIntersection(wireB, intersection)
+		allCombinedSteps = append(allCombinedSteps, combinedSteps)
+	}
+
+	fewestCombinedSteps := allCombinedSteps[0]
+	for _, cs := range allCombinedSteps {
+		if cs < fewestCombinedSteps {
+			fewestCombinedSteps = cs
+		}
+
+		fmt.Printf("candidate combined steps: %d \n", cs)
+	}
+
+	fmt.Printf("fewest combined steps: %d \n", fewestCombinedSteps)
 }

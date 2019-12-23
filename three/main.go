@@ -128,31 +128,20 @@ func parseInput(filename string) *Wire {
 	}
 
 	for i, value := range textArray {
-		r, _ := utf8.DecodeRuneInString(value)
+		movement := new(Movement)
 
-		var movement *Movement
+		r, _ := utf8.DecodeRuneInString(value)
+		magnitude, _ := strconv.ParseInt(strings.Split(value, string(r))[1], 10, 64)
 
 		switch string(r) {
 		case "U":
-			deltaY, _ := strconv.ParseInt(strings.Split(value, "U")[1], 10, 64)
-			movement = &Movement{
-				deltaY: int(deltaY),
-			}
+			movement.deltaY = int(magnitude)
 		case "D":
-			deltaY, _ := strconv.ParseInt(strings.Split(value, "D")[1], 10, 64)
-			movement = &Movement{
-				deltaY: -1 * int(deltaY),
-			}
+			movement.deltaY = -1 * int(magnitude)
 		case "R":
-			deltaX, _ := strconv.ParseInt(strings.Split(value, "R")[1], 10, 64)
-			movement = &Movement{
-				deltaX: int(deltaX),
-			}
+			movement.deltaX = int(magnitude)
 		case "L":
-			deltaX, _ := strconv.ParseInt(strings.Split(value, "L")[1], 10, 64)
-			movement = &Movement{
-				deltaX: -1 * int(deltaX),
-			}
+			movement.deltaX = -1 * int(magnitude)
 		}
 
 		switch i {

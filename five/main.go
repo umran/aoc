@@ -58,7 +58,7 @@ func normalizeModes(modes []int, lenParams int) []int {
 	return fixedModes
 }
 
-func (c *Computer) initializeProgram(instructions []int) {
+func (c *Computer) _initializeProgram(instructions []int) {
 	// we create a copy of the instructions to prevent mutating the original
 	ownedInstructions := make([]int, len(instructions))
 	copy(ownedInstructions, instructions)
@@ -179,7 +179,7 @@ func (c *Computer) equals() {
 }
 
 func (c *Computer) runProgram(instructions []int, arg int) []int {
-	c.initializeProgram(instructions)
+	c._initializeProgram(instructions)
 	log := make([]int, 0)
 
 program:

@@ -122,10 +122,11 @@ func (om *OrbitMap) _enumerateNodesBetween(origin, destination string) (bool, []
 		return true, transfers
 	}
 
+	// flag the current object as being searched
 	om.searchedList[origin] = true
 
 	for _, transferable := range object.transferables() {
-		// if the object has already been searched, continue
+		// if the transferable has already been searched, continue
 		if _, searched := om.searchedList[transferable]; searched == true {
 			continue
 		}

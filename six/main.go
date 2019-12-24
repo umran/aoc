@@ -95,7 +95,7 @@ func (om *OrbitMap) _initializeSearchedList() {
 	om.searchedList = make(map[string]bool)
 }
 
-func (om *OrbitMap) computeOrder() (count int) {
+func (om *OrbitMap) countDirectAndIndirectOrbits() (count int) {
 	for _, object := range om.objectMap {
 		currentObject := object
 	search:
@@ -113,13 +113,12 @@ func (om *OrbitMap) computeOrder() (count int) {
 	return count
 }
 
-// this is a stateful recursive function that should be called after _initializeSearchedList()
-func (om *OrbitMap) _enumeratePathBetween(origin, destination string) (bool, []string) {
+// this is a stateful recursive function that should always be called after _initializeSearchedList()
+func (om *OrbitMap) _enumerateNodesBetween(origin, destination string) (bool, []string) {
 	var transfers []string
 
 	object := om.objectMap[origin]
 	if object.transferableTo(destination) {
-		// transfers = append(transfers, object.name)
 		return true, transfers
 	}
 
@@ -131,12 +130,9 @@ func (om *OrbitMap) _enumeratePathBetween(origin, destination string) (bool, []s
 			continue
 		}
 
-		// otherwise, recursively search it
-		isTransferable, subTransfers := om._enumeratePathBetween(transferable, destination)
+		// otherwise, recursively search its immediate neighbours
+		isTransferable, subTransfers := om._enumerateNodesBetween(transferable, destination)
 		if isTransferable {
-			// transfers = make([]string, len(subTransfers)+1)
-			// transfers[0] = transferable
-			// copy(transfers[1:], subTransfers)
 			transfers = append(transfers, transferable)
 			transfers = append(transfers, subTransfers...)
 			return true, transfers
@@ -146,9 +142,9 @@ func (om *OrbitMap) _enumeratePathBetween(origin, destination string) (bool, []s
 	return false, transfers
 }
 
-func (om *OrbitMap) enumeratePathBetween(origin, destination string) (bool, []string) {
+func (om *OrbitMap) enumerateNodesBetween(origin, destination string) (bool, []string) {
 	om._initializeSearchedList()
-	return om._enumeratePathBetween(origin, destination)
+	return om._enumerateNodesBetween(origin, destination)
 }
 
 func (om *OrbitMap) getOrbitOf(name string) string {
@@ -165,11 +161,11 @@ func main() {
 	om := parseInput("./input.txt")
 
 	// this is the answer to part 1
-	fmt.Println(om.computeOrder())
+	fmt.Println(om.countDirectAndIndirectOrbits())
 
-	_, path := om.enumeratePathBetween("YOU", "SAN")
-	fmt.Println(path)
+	_, nodes := om.enumerateNodesBetween("YOU", "SAN")
+	fmt.Println(nodes)
 
 	// this is the answer to part 2
-	fmt.Println(len(path) - 1)
+	fmt.Println(len(nodes) - 1)
 }

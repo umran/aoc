@@ -72,7 +72,7 @@ func (s *Segment) containsAlongX(s2 *Segment) bool {
 		return false
 	}
 
-	if s.minX() <= s2.minX() && s.maxX() > s2.maxX() {
+	if s.minX() <= s2.minX() && s.maxX() >= s2.maxX() {
 		return true
 	}
 
@@ -84,7 +84,7 @@ func (s *Segment) containsAlongY(s2 *Segment) bool {
 		return false
 	}
 
-	if s.minY() <= s2.minY() && s.maxY() > s2.maxY() {
+	if s.minY() <= s2.minY() && s.maxY() >= s2.maxY() {
 		return true
 	}
 
@@ -94,9 +94,9 @@ func (s *Segment) containsAlongY(s2 *Segment) bool {
 func (s *Segment) containsCoordinate(c *Coordinate) bool {
 	switch {
 	case s.alongX():
-		return s.minX() <= c.x && s.maxX() > c.x && s.start.y == c.y
+		return s.minX() <= c.x && s.maxX() >= c.x && s.start.y == c.y
 	case s.alongY():
-		return s.minY() <= c.y && s.maxY() > c.y && s.start.x == c.x
+		return s.minY() <= c.y && s.maxY() >= c.y && s.start.x == c.x
 	default:
 		return s.start.equals(c)
 	}
@@ -255,5 +255,6 @@ func main() {
 		fmt.Printf("candidate combined steps: %d \n", cs)
 	}
 
+	// this is the answer to part 2
 	fmt.Printf("fewest combined steps: %d \n", fewestCombinedSteps)
 }

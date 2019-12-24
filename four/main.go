@@ -52,7 +52,7 @@ func hasIsolatedDouble(pw int) bool {
 		} else {
 			seenList[slice] = seenList[slice] + 1
 			if i == len(slices)-1 {
-				if count, _ := seenList[slice]; count == 2 {
+				if count := seenList[slice]; count == 2 {
 					return true
 				}
 			}

@@ -223,9 +223,7 @@ func main() {
 
 	distances := make([]int, len(intersections))
 	for i, intersection := range intersections {
-		//fmt.Printf("we have an intersection at: (x: %d, y: %d) \n", intersection.x, intersection.y)
 		distances[i] = manhattanDistance(intersection, &Coordinate{0, 0})
-		//fmt.Printf("the manhattan distance between this intersection and the central point is: %d \n", distances[i])
 	}
 
 	closestDistance := distances[0]

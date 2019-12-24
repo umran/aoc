@@ -8,10 +8,7 @@ import (
 )
 
 func parseInput(filename string) []int {
-	bytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
+	bytes, _ := ioutil.ReadFile(filename)
 
 	text := string(bytes)
 	textArray := strings.Split(text, ",")

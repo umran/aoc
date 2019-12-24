@@ -76,7 +76,7 @@ func parseInput(fileName string) *OrbitMap {
 			primaryObject.addSatellite(secondaryName)
 		}
 
-		// upsert secondary object
+		// upsert secondary object and set primary as its parent
 		secondaryObject, _ := objectMap[secondaryName]
 		switch secondaryObject {
 		case nil:

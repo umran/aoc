@@ -11,8 +11,6 @@ import (
 
 func calcFuel(mass float64) float64 {
 	fuel := math.Floor(mass/3) - 2
-	fmt.Printf("the fuel required for a mass of %f is %f \n", mass, fuel)
-
 	return fuel
 }
 
@@ -37,10 +35,7 @@ func main() {
 	totalFuel := float64(0)
 	totalFuel2 := float64(0)
 
-	file, err := os.Open("./input.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
+	file, _ := os.Open("./input.txt")
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)

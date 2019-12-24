@@ -8,7 +8,10 @@ import (
 )
 
 // OrbitMap ...
-type OrbitMap map[string]*Object
+type OrbitMap struct {
+	objectMap    map[string]*Object
+	searchedList map[string]bool
+}
 
 // Object ...
 type Object struct {
@@ -25,11 +28,36 @@ func (o *Object) setParent(name string) {
 	o.parent = name
 }
 
-func parseInput(fileName string) OrbitMap {
+func (o *Object) transferables() []string {
+	transferables := make([]string, len(o.satellites), len(o.satellites)+1)
+	copy(transferables, o.satellites)
+
+	if o.parent != "" {
+		transferables = append(transferables, o.parent)
+	}
+
+	return transferables
+}
+
+func (o *Object) transferableTo(destination string) bool {
+	if o.parent == destination {
+		return true
+	}
+
+	for _, sat := range o.satellites {
+		if destination == sat {
+			return true
+		}
+	}
+
+	return false
+}
+
+func parseInput(fileName string) *OrbitMap {
 	file, _ := os.Open("./input.txt")
 	defer file.Close()
 
-	objectMap := make(OrbitMap)
+	objectMap := make(map[string]*Object)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -40,10 +68,10 @@ func parseInput(fileName string) OrbitMap {
 		secondaryName := pair[1]
 
 		// upsert primary object and add secondary as a satellite
-		primaryObject, _ := objectMap[primaryName]
+		primaryObject := objectMap[primaryName]
 		switch primaryObject {
 		case nil:
-			objectMap[primaryName] = &Object{name: primaryName}
+			objectMap[primaryName] = &Object{name: primaryName, satellites: []string{secondaryName}}
 		default:
 			primaryObject.addSatellite(secondaryName)
 		}
@@ -58,11 +86,17 @@ func parseInput(fileName string) OrbitMap {
 		}
 	}
 
-	return objectMap
+	return &OrbitMap{
+		objectMap: objectMap,
+	}
 }
 
-func (om OrbitMap) computeOrder() (count int) {
-	for _, object := range om {
+func (om *OrbitMap) _initializeSearchedList() {
+	om.searchedList = make(map[string]bool)
+}
+
+func (om *OrbitMap) computeOrder() (count int) {
+	for _, object := range om.objectMap {
 		currentObject := object
 	search:
 		for {
@@ -71,7 +105,7 @@ func (om OrbitMap) computeOrder() (count int) {
 				break search
 			default:
 				count++
-				currentObject = om[currentObject.parent]
+				currentObject = om.objectMap[currentObject.parent]
 			}
 		}
 	}
@@ -79,9 +113,63 @@ func (om OrbitMap) computeOrder() (count int) {
 	return count
 }
 
+// this is a stateful recursive function that should be called after _initializeSearchedList()
+func (om *OrbitMap) _enumeratePathBetween(origin, destination string) (bool, []string) {
+	var transfers []string
+
+	object := om.objectMap[origin]
+	if object.transferableTo(destination) {
+		// transfers = append(transfers, object.name)
+		return true, transfers
+	}
+
+	om.searchedList[origin] = true
+
+	for _, transferable := range object.transferables() {
+		// if the object has already been searched, continue
+		if _, searched := om.searchedList[transferable]; searched == true {
+			continue
+		}
+
+		// otherwise, recursively search it
+		isTransferable, subTransfers := om._enumeratePathBetween(transferable, destination)
+		if isTransferable {
+			// transfers = make([]string, len(subTransfers)+1)
+			// transfers[0] = transferable
+			// copy(transfers[1:], subTransfers)
+			transfers = append(transfers, transferable)
+			transfers = append(transfers, subTransfers...)
+			return true, transfers
+		}
+	}
+
+	return false, transfers
+}
+
+func (om *OrbitMap) enumeratePathBetween(origin, destination string) (bool, []string) {
+	om._initializeSearchedList()
+	return om._enumeratePathBetween(origin, destination)
+}
+
+func (om *OrbitMap) getOrbitOf(name string) string {
+	object := om.objectMap[name]
+	switch object {
+	case nil:
+		return ""
+	default:
+		return object.parent
+	}
+}
+
 func main() {
-	objectMap := parseInput("./input.txt")
+	om := parseInput("./input.txt")
 
 	// this is the answer to part 1
-	fmt.Println(objectMap.computeOrder())
+	fmt.Println(om.computeOrder())
+
+	_, path := om.enumeratePathBetween("YOU", "SAN")
+	fmt.Println(path)
+
+	// this is the answer to part 2
+	fmt.Println(len(path) - 1)
 }

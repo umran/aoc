@@ -143,19 +143,10 @@ func (om *OrbitMap) _enumerateNodesBetween(origin, destination string) (bool, []
 	return false, transfers
 }
 
-func (om *OrbitMap) enumerateNodesBetween(origin, destination string) (bool, []string) {
+func (om *OrbitMap) enumerateNodesBetween(origin, destination string) []string {
 	om._initializeSearchedList()
-	return om._enumerateNodesBetween(origin, destination)
-}
-
-func (om *OrbitMap) getOrbitOf(name string) string {
-	object := om.objectMap[name]
-	switch object {
-	case nil:
-		return ""
-	default:
-		return object.parent
-	}
+	_, nodes := om._enumerateNodesBetween(origin, destination)
+	return nodes
 }
 
 func main() {
@@ -164,7 +155,7 @@ func main() {
 	// this is the answer to part 1
 	fmt.Println(om.countDirectAndIndirectOrbits())
 
-	_, nodes := om.enumerateNodesBetween("YOU", "SAN")
+	nodes := om.enumerateNodesBetween("YOU", "SAN")
 	fmt.Println(nodes)
 
 	// this is the answer to part 2

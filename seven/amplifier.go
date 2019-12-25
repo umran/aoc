@@ -12,8 +12,8 @@ func runAmplifier(instructions []int, phase int) (chan int, chan int) {
 	c := new(Computer)
 
 	input, output := c.runProgram(instructions)
-
 	input <- phase
+
 	return input, output
 }
 

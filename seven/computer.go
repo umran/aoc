@@ -178,42 +178,49 @@ func (c *Computer) equals() {
 	}
 }
 
-func (c *Computer) runProgram(instructions []int, input, output chan int) {
+func (c *Computer) runProgram(instructions []int) (chan int, chan int) {
 	c._initializeProgram(instructions)
 
-program:
-	for {
-		opCode, _ := determineOperationAndModes(c.instructions[c.pointer])
+	input := make(chan int)
+	output := make(chan int)
 
-		switch opCode {
-		case 0:
-			c.nextPointer(c.pointer + 1)
-		case 1:
-			c.add()
-		case 2:
-			c.mul()
-		case 3:
-			c.set(<-input)
-		case 4:
-			output <- c.get()
-		case 5:
-			c.jumpIfTrue()
-		case 6:
-			c.jumpIfFalse()
-		case 7:
-			c.lessThan()
-		case 8:
-			c.equals()
-		case 99:
-			// flush out any feedback before closing io
-			select {
-			case <-input:
-			case <-time.After(1 * time.Millisecond):
+	go func() {
+	program:
+		for {
+			opCode, _ := determineOperationAndModes(c.instructions[c.pointer])
+
+			switch opCode {
+			case 0:
+				c.nextPointer(c.pointer + 1)
+			case 1:
+				c.add()
+			case 2:
+				c.mul()
+			case 3:
+				c.set(<-input)
+			case 4:
+				output <- c.get()
+			case 5:
+				c.jumpIfTrue()
+			case 6:
+				c.jumpIfFalse()
+			case 7:
+				c.lessThan()
+			case 8:
+				c.equals()
+			case 99:
+				// flush out any feedback before closing io
+				select {
+				case <-input:
+				case <-time.After(1 * time.Millisecond):
+				}
+
+				close(input)
+				close(output)
+				break program
 			}
-
-			close(input)
-			close(output)
-			break program
 		}
-	}
+	}()
+
+	return input, output
 }

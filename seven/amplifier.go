@@ -10,12 +10,8 @@ func pipe(c1, c2 chan int) {
 
 func runAmplifier(instructions []int, phase int) (chan int, chan int) {
 	c := new(Computer)
-	input := make(chan int)
-	output := make(chan int)
 
-	go func() {
-		c.runProgram(instructions, input, output)
-	}()
+	input, output := c.runProgram(instructions)
 
 	input <- phase
 	return input, output

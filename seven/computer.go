@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -218,18 +217,4 @@ program:
 	}
 
 	return log
-}
-
-func main() {
-	instructions := parseInstructions("./instructions.txt")
-	computer := new(Computer)
-	log := computer.runProgram(instructions, []int{1})
-
-	// this is the answer to part one
-	fmt.Println(log)
-
-	log2 := computer.runProgram(instructions, []int{5})
-
-	// this is the answer to part two
-	fmt.Println(log2)
 }

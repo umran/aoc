@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Computer ...
@@ -177,16 +178,8 @@ func (c *Computer) equals() {
 	}
 }
 
-func (c *Computer) runProgram(instructions []int, args []int) []int {
+func (c *Computer) runProgram(instructions []int, input, output chan int) {
 	c._initializeProgram(instructions)
-	log := make([]int, 0)
-
-	inputs := make(chan int)
-	go func(inputs chan int, args []int) {
-		for _, arg := range args {
-			inputs <- arg
-		}
-	}(inputs, args)
 
 program:
 	for {
@@ -200,9 +193,9 @@ program:
 		case 2:
 			c.mul()
 		case 3:
-			c.set(<-inputs)
+			c.set(<-input)
 		case 4:
-			log = append(log, c.get())
+			output <- c.get()
 		case 5:
 			c.jumpIfTrue()
 		case 6:
@@ -212,9 +205,15 @@ program:
 		case 8:
 			c.equals()
 		case 99:
+			// flush out any feedback before closing io
+			select {
+			case <-input:
+			case <-time.After(1 * time.Millisecond):
+			}
+
+			close(input)
+			close(output)
 			break program
 		}
 	}
-
-	return log
 }

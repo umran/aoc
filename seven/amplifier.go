@@ -8,7 +8,8 @@ func pipe(c1, c2 chan int) {
 	}()
 }
 
-func (c *Computer) runAmplifier(instructions []int, phase int) (chan int, chan int) {
+func runAmplifier(instructions []int, phase int) (chan int, chan int) {
+	c := new(Computer)
 	input := make(chan int)
 	output := make(chan int)
 
@@ -24,8 +25,7 @@ func runNetwork(instructions []int, phases []int) int {
 	var lastOut chan int
 
 	for i, phase := range phases {
-		c := new(Computer)
-		in, out := c.runAmplifier(instructions, phase)
+		in, out := runAmplifier(instructions, phase)
 
 		switch i {
 		case 0:
@@ -52,8 +52,7 @@ func runFeedbackNetwork(instructions []int, phases []int) int {
 	)
 
 	for i, phase := range phases {
-		c := new(Computer)
-		in, out := c.runAmplifier(instructions, phase)
+		in, out := runAmplifier(instructions, phase)
 
 		switch i {
 		case 0:

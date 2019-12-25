@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Computer ...
@@ -178,58 +179,69 @@ func (c *Computer) equals() {
 	}
 }
 
-func (c *Computer) runProgram(instructions []int, args []int) []int {
+func (c *Computer) runProgram(instructions []int) (chan int, chan int) {
 	c._initializeProgram(instructions)
-	log := make([]int, 0)
 
-	inputs := make(chan int)
-	go func(inputs chan int, args []int) {
-		for _, arg := range args {
-			inputs <- arg
+	input := make(chan int)
+	output := make(chan int)
+
+	go func() {
+	program:
+		for {
+			opCode, _ := determineOperationAndModes(c.instructions[c.pointer])
+
+			switch opCode {
+			case 0:
+				c.nextPointer(c.pointer + 1)
+			case 1:
+				c.add()
+			case 2:
+				c.mul()
+			case 3:
+				c.set(<-input)
+			case 4:
+				output <- c.get()
+			case 5:
+				c.jumpIfTrue()
+			case 6:
+				c.jumpIfFalse()
+			case 7:
+				c.lessThan()
+			case 8:
+				c.equals()
+			case 99:
+				// flush out any feedback before closing io
+				select {
+				case <-input:
+				case <-time.After(1 * time.Millisecond):
+				}
+
+				close(input)
+				close(output)
+				break program
+			}
 		}
-	}(inputs, args)
+	}()
 
-program:
-	for {
-		opCode, _ := determineOperationAndModes(c.instructions[c.pointer])
-
-		switch opCode {
-		case 0:
-			c.nextPointer(c.pointer + 1)
-		case 1:
-			c.add()
-		case 2:
-			c.mul()
-		case 3:
-			c.set(<-inputs)
-		case 4:
-			log = append(log, c.get())
-		case 5:
-			c.jumpIfTrue()
-		case 6:
-			c.jumpIfFalse()
-		case 7:
-			c.lessThan()
-		case 8:
-			c.equals()
-		case 99:
-			break program
-		}
-	}
-
-	return log
+	return input, output
 }
 
 func main() {
 	instructions := parseInstructions("./instructions.txt")
 	computer := new(Computer)
-	log := computer.runProgram(instructions, []int{1})
+	input, output := computer.runProgram(instructions)
+	input <- 1
 
 	// this is the answer to part one
-	fmt.Println(log)
+	for value := range output {
+		fmt.Println(value)
+	}
 
-	log2 := computer.runProgram(instructions, []int{5})
+	input2, output2 := computer.runProgram(instructions)
+	input2 <- 5
 
 	// this is the answer to part two
-	fmt.Println(log2)
+	for value := range output2 {
+		fmt.Println(value)
+	}
 }
